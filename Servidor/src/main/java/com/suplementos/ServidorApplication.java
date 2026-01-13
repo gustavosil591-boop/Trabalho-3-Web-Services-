@@ -2,6 +2,8 @@ package com.suplementos;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -10,67 +12,63 @@ import java.util.*;
 @RequestMapping("/suplementos")
 public class ServidorApplication {
     
-    private List<Suplemento> suplementos = new ArrayList<>();
+    // Lista sincronizada para evitar erros com múltiplos clientes simultâneos
+    private List<Suplemento> suplementos = Collections.synchronizedList(new ArrayList<>());
     private int proximoId = 1;
     
     public static void main(String[] args) {
         SpringApplication.run(ServidorApplication.class, args);
-        System.out.println("✅ SERVIDOR RODANDO!");
-        System.out.println("✅ URL: http://localhost:8080");
+        System.out.println("✅ SERVIDOR DE SUPLEMENTOS RODANDO!");
         System.out.println("✅ Endpoint: http://localhost:8080/suplementos");
     }
     
-    // listar todos 
+    
     @GetMapping
     public List<Suplemento> listarTodos() {
         return suplementos;
     }
     
-    // Buscando por id
+    // Buscar por ID com tratamento de erro 404
     @GetMapping("/{id}")
-    public Suplemento buscarPorId(@PathVariable int id) {
-        for (Suplemento s : suplementos) {
-            if (s.getId() == id) {
-                return s;
-            }
-        }
-        return null;
+    public ResponseEntity<Suplemento> buscarPorId(@PathVariable int id) {
+        return suplementos.stream()
+                .filter(s -> s.getId() == id)
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
     
-    // Cadastrar algo novo
+    // Cadastrar com status 201 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Suplemento cadastrar(@RequestBody Suplemento novo) {
-        novo.setId(proximoId);
-        proximoId++;
+        novo.setId(proximoId++);
         suplementos.add(novo);
-        System.out.println(" NOVO: " + novo.getNome());
+        System.out.println("NOVO SUPLEMENTO CADASTRADO: " + novo.getNome());
         return novo;
     }
     
-    // Atualizar
+    // Atualizar com tratamento de erro
     @PutMapping("/{id}")
-    public Suplemento atualizar(@PathVariable int id, @RequestBody Suplemento atualizado) {
+    public ResponseEntity<Suplemento> atualizar(@PathVariable int id, @RequestBody Suplemento atualizado) {
         for (int i = 0; i < suplementos.size(); i++) {
             if (suplementos.get(i).getId() == id) {
                 atualizado.setId(id);
                 suplementos.set(i, atualizado);
-                System.out.println(" ATUALIZADO ID: " + id);
-                return atualizado;
+                return ResponseEntity.ok(atualizado);
             }
         }
-        return null;
+        return ResponseEntity.notFound().build();
     }
     
-    // Remover
+    // Remover com status 204 (No Content) ou 404
     @DeleteMapping("/{id}")
-    public String remover(@PathVariable int id) {
-        for (int i = 0; i < suplementos.size(); i++) {
-            if (suplementos.get(i).getId() == id) {
-                suplementos.remove(i);
-                System.out.println(" REMOVIDO ID: " + id);
-                return "Removido com sucesso!";
-            }
+    public ResponseEntity<Void> remover(@PathVariable int id) {
+        boolean removido = suplementos.removeIf(s -> s.getId() == id);
+        if (removido) {
+            System.out.println("REMOVIDO ID: " + id);
+            return ResponseEntity.noContent().build();
         }
-        return "Não encontrado!";
+        return ResponseEntity.notFound().build();
     }
 }
