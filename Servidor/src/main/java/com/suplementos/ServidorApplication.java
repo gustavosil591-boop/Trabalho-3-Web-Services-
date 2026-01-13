@@ -38,7 +38,7 @@ public class ServidorApplication {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    // Cadastrar com status 201 
+    // Cadastrar com status
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Suplemento cadastrar(@RequestBody Suplemento novo) {
@@ -61,7 +61,7 @@ public class ServidorApplication {
         return ResponseEntity.notFound().build();
     }
     
-    // Remover com status 204 (No Content) ou 404
+    // Remover com status
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable int id) {
         boolean removido = suplementos.removeIf(s -> s.getId() == id);

@@ -3,12 +3,12 @@ const axios = require('axios');
 console.log("=== CLIENTE JAVASCRIPT - SISTEMA DE SUPLEMENTOS ===");
 console.log();
 
-// ATENÇÃO: Porta 8080, não 8880!
+
 const URL = "http://localhost:8080/suplementos";
 
 async function main() {
     try {
-        // 1. LISTAR O QUE JÁ TEM
+        //  LISTAR O QUE JÁ TEM
         console.log("1. Buscando suplementos cadastrados...");
         const resposta = await axios.get(URL);
         const suplementos = resposta.data;
@@ -20,7 +20,7 @@ async function main() {
         
         console.log();
         
-        // 2. CADASTRAR UM NOVO
+        //  CADASTRAR UM NOVO
         console.log("2. Cadastrando Creatina...");
         const novo = {
             nome: "Creatina",
@@ -36,7 +36,7 @@ async function main() {
         
         console.log();
         
-        // 3. LISTAR NOVAMENTE
+        // . LISTAR NOVAMENTE
         console.log("3. Lista atualizada...");
         const resposta3 = await axios.get(URL);
         console.log(`✅ Agora temos ${resposta3.data.length} suplementos`);
